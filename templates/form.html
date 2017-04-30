@@ -1,23 +1,23 @@
 <html>
   <head>
-    <title>Submit a form</title>
+    <title>Create a resource</title>
    <link rel="stylesheet" type="text/css" href="/static/style.css">
   </head>
   <body>
     <div id="container">
       <div class="pagetitle">
-        <h1>Submit a form</h1>
+        <h1>Create a resource (24hr format)</h1>
       </div>
       <div id="main">
         <form method="post" action="{{ url_for('submitted_form') }}">
           <label for="name">Name:</label>
           <input type="text" name="name"><br />
-          <label for="email">Email address:</label>
-          <input type="email" name="email"><br />
-          <label for="site_url">Website URL:</label>
-          <input type="url" name="site_url"><br />
-          <label for="comments">Comments:</label>
-          <textarea name="comments"></textarea><br />
+          <label for="start">Start time (hh:mm):</label>
+          <input type="text" name="start"><br />
+          <label for="end">End time (hh:mm):</label>
+          <input type="text" name="end"><br />
+          <label for="tags">Tags (seperated by comma):</label>
+          <input type="text" name="tags"><br />
           <input type="submit">
         </form>
       </div>

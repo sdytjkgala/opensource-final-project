@@ -14,15 +14,15 @@ def form():
 @app.route('/submitted', methods=['POST'])
 def submitted_form():
     name = request.form['name']
-    email = request.form['email']
-    site = request.form['site_url']
-    comments = request.form['comments']
+    start = request.form['start']
+    end = request.form['end']
+    tags = request.form['tags']
     return render_template(
     'submitted_form.html',
     name=name,
-    email=email,
-    site=site,
-    comments=comments)
+    start=start,
+    end=end,
+    tags=tags)
 
 @app.errorhandler(500)
 def server_error(e):
