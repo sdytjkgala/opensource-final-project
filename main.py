@@ -1,10 +1,17 @@
 import logging
 from flask import Flask, render_template, request
+from google.appengine.ext import ndb
 
 app = Flask(__name__)
 
+class Resources(ndb.Model):
+    name = ndb.StringProperty()
+    start = ndb.StringProperty()
+
 @app.route('/')
 def hello():
+    test1 = Resources(name='hotel', start='12:00')
+    test1_key = test1.put()
     return render_template('index.html')
 
 @app.route('/form')
