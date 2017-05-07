@@ -1,29 +1,45 @@
 import logging
 from flask import Flask, render_template, request
 from google.appengine.ext import ndb
+from datetime import datetime
 
 app = Flask(__name__)
 
-class Resources(ndb.Model):
+class Resource(ndb.Model):
     name = ndb.StringProperty()
-    start = ndb.StringProperty()
+    start = ndb.TimeProperty()
+    end = ndb.TimeProperty()
+    tags = ndb.StringProperty()
+    createdby = ndb.StringProperty()
+    reserved = ndb.IntegerProperty()
+    reservedby = ndb.StringProperty()
 
 @app.route('/')
 def hello():
-    test1 = Resources(name='hotel', start='12:00')
-    test1_key = test1.put()
     return render_template('index.html')
+@app.route('/reservation')
+def reservation():
+    return render_template('form.html')
 
+@app.route('/allresource')
+def allresource():
+    return render_template('form.html')
+
+@app.route('/resourceown')
+def resourceown():
+    return render_template('form.html')
 @app.route('/form')
 def form():
     return render_template('form.html')
-    
+
 @app.route('/submitted', methods=['POST'])
 def submitted_form():
     name = request.form['name']
     start = request.form['start']
     end = request.form['end']
     tags = request.form['tags']
+    resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), tags=tags, createdby='Kun', reserved=0, reservedby='')
+    resource_key = resource.put()
     return render_template(
     'submitted_form.html',
     name=name,
