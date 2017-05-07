@@ -37,6 +37,18 @@ def resourceown():
 
 @app.route('/showresource/<string:name>')
 def showresource(name):
+    return render_template('resource.html', resourcename=name)
+
+@app.route('/showreservation/<string:name>')
+def showreservation(name):
+    return name
+
+@app.route('/addreservation/<string:name>')
+def addreservation(name):
+    return name
+
+@app.route('/editresource/<string:name>')
+def editresource(name):
     return name
 
 @app.route('/form')
@@ -53,7 +65,7 @@ def submitted_form():
     x = 0
     for qry in query.fetch():
         x = x + 1
-    if (x == 0):
+    if (x != 0):
         return "resource with same name already exist, please change the name"
     else:
         resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), tags=tags, createdby='Kun', reserved=0, reservedby='', flag=0)
