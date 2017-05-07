@@ -13,6 +13,7 @@ class Resource(ndb.Model):
     createdby = ndb.StringProperty()
     reserved = ndb.IntegerProperty()
     reservedby = ndb.StringProperty()
+    flag = ndb.IntegerProperty() # 0 = total, 1 = sub
 
 @app.route('/')
 def hello():
@@ -27,7 +28,17 @@ def allresource():
 
 @app.route('/resourceown')
 def resourceown():
-    return render_template('form.html')
+    query = Resource.query(Resource.createdby == 'Kun')
+    x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
+    for qry in query.fetch():
+        x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a></div>'
+    x = x + "</div></body></html>"
+    return x
+
+@app.route('/showresource/<string:name>')
+def showresource(name):
+    return name
+
 @app.route('/form')
 def form():
     return render_template('form.html')
@@ -38,14 +49,21 @@ def submitted_form():
     start = request.form['start']
     end = request.form['end']
     tags = request.form['tags']
-    resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), tags=tags, createdby='Kun', reserved=0, reservedby='')
-    resource_key = resource.put()
-    return render_template(
-    'submitted_form.html',
-    name=name,
-    start=start,
-    end=end,
-    tags=tags)
+    query = Resource.query(Resource.name == name)
+    x = 0
+    for qry in query.fetch():
+        x = x + 1
+    if (x == 0):
+        return "resource with same name already exist, please change the name"
+    else:
+        resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), tags=tags, createdby='Kun', reserved=0, reservedby='', flag=0)
+        resource_key = resource.put()
+        return render_template(
+        'submitted_form.html',
+        name=name,
+        start=start,
+        end=end,
+        tags=tags)
 
 @app.errorhandler(500)
 def server_error(e):
