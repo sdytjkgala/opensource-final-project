@@ -24,7 +24,12 @@ def reservation():
 
 @app.route('/allresource')
 def allresource():
-    return render_template('form.html')
+	query = Resource.query()
+	x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
+	for qry in query.fetch():
+		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a></div>'
+	x = x + "</div></body></html>"
+	return x
 
 @app.route('/resourceown')
 def resourceown():
@@ -41,7 +46,12 @@ def showresource(name):
 
 @app.route('/showreservation/<string:name>')
 def showreservation(name):
-    return name
+	query = Resource.query(Resource.name == name)
+	x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
+	for qry in query.fetch():
+		x = x + '<div>' + qry.name + '___' + str(qry.start) + '___' + str(qry.end) + '___' + str(qry.createdby) + '</div>'
+	x = x + "</div></body></html>"
+	return x
 
 @app.route('/addreservation/<string:name>')
 def addreservation(name):
@@ -79,7 +89,7 @@ def submitted_form():
     if (x != 0):
         return "resource with same name already exist, please change the name"
     else:
-        resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), tags=tags, createdby='Kun', reserved=0, reservedby='', flag=0)
+        resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), tags=tags, createdby='Sonia', reserved=0, reservedby='', flag=0)
         resource_key = resource.put()
         return render_template(
         'submitted_form.html',
