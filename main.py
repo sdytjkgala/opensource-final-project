@@ -24,7 +24,7 @@ def reservation():
 
 @app.route('/allresource')
 def allresource():
-	query = Resource.query()
+	query = Resource.query(Resource.flag == 0)
 	x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
 	for qry in query.fetch():
 		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a></div>'

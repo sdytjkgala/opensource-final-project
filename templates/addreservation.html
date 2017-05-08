@@ -6,12 +6,12 @@
   <body>
     <div id="container">
       <div class="pagetitle">
-        <h1>Create a resource (24hr format)</h1>
+        <h1>Create a reservation (24hr format)</h1>
       </div>
       <div id="main">
         <form method="post" action="{{ url_for('reserved_form') }}">
           <label for="name">Name:</label>
-          <input type="text" name="name" value={{resourcename}} readonly><br />
+          <input type="text" name="name" value="{{resourcename}}" readonly><br />
           <label for="start">Start time (hh:mm):</label>
           <input type="text" name="start"><br />
           <label for="duration">Duration (in minutes):</label>
