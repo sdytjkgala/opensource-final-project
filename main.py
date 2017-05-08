@@ -45,7 +45,18 @@ def showreservation(name):
 
 @app.route('/addreservation/<string:name>')
 def addreservation(name):
-    return name
+    return render_template('addreservation.html', resourcename=name)
+
+@app.route('/reserved', methods=['POST'])
+def reserved_form():
+	name = request.form['name']
+	start = request.form['start']
+	duration = request.form['duration']
+	return render_template(
+    'reserved_form.html',
+    name=name,
+    start=start,
+    duration=duration)
 
 @app.route('/editresource/<string:name>')
 def editresource(name):

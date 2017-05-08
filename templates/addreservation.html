@@ -1,0 +1,24 @@
+<html>
+  <head>
+    <title>Create a resource</title>
+   <link rel="stylesheet" type="text/css" href="/static/style.css">
+  </head>
+  <body>
+    <div id="container">
+      <div class="pagetitle">
+        <h1>Create a resource (24hr format)</h1>
+      </div>
+      <div id="main">
+        <form method="post" action="{{ url_for('reserved_form') }}">
+          <label for="name">Name:</label>
+          <input type="text" name="name">{{resourcename}}<br />
+          <label for="start">Start time (hh:mm):</label>
+          <input type="text" name="start"><br />
+          <label for="duration">Duration (in hours):</label>
+          <input type="text" name="duration"><br />
+          <input type="submit">
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
