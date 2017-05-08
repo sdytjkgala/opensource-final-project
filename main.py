@@ -1,7 +1,7 @@
 import logging
 from flask import Flask, render_template, request
 from google.appengine.ext import ndb
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -62,6 +62,9 @@ def reserved_form():
 	name = request.form['name']
 	start = request.form['start']
 	duration = request.form['duration']
+	end = datetime.strptime(start, '%H:%M') + timedelta(minutes=int(duration))
+	resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(str(end)[11:16], '%H:%M').time(), tags='', createdby='', reserved=0, reservedby='Sonia', flag=1)
+	resource_key = resource.put()
 	return render_template(
     'reserved_form.html',
     name=name,
