@@ -36,62 +36,83 @@ def home():
 
 @app.route('/reservation')
 def reservation():
-    return render_template('form.html')
+	if users.get_current_user():
+		return render_template('form.html')
+	else:
+		return "please login first"
 
 @app.route('/allresource')
 def allresource():
-	query = Resource.query(Resource.flag == 0)
-	x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
-	for qry in query.fetch():
-		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   Tags:'
-		for tag in str(qry.tags).split(','):
-			x = x + '<a href="/showtagresource/'+ tag.strip() +'">'+ tag.strip() +'</a>  '
-		x = x + '</div>'
-	x = x + "</div></body></html>"
-	return x
-
+	if users.get_current_user():
+		query = Resource.query(Resource.flag == 0)
+		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
+		for qry in query.fetch():
+			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   Tags:'
+			for tag in str(qry.tags).split(','):
+				x = x + '<a href="/showtagresource/'+ tag.strip() +'">'+ tag.strip() +'</a>  '
+			x = x + '</div>'
+		x = x + "</div></body></html>"
+		return x
+	else:
+		return "please login first"
+		
 @app.route('/showtagresource/<string:name>')
 def showtagresource(name):
-    query = Resource.query(Resource.flag == 0)
-    x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
-    for qry in query.fetch():
-        if (name in qry.tags):
-            x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   Tags:'
-            for tag in str(qry.tags).split(','):
-                x = x + '<a href="/showtagresource/'+ tag.strip() +'">'+ tag.strip() +'</a>  '
-            x = x + '</div>'
-    x = x + "</div></body></html>"
-    return x
+	if users.get_current_user():
+    		query = Resource.query(Resource.flag == 0)
+    		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
+    		for qry in query.fetch():
+        		if (name in qry.tags):
+            			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   Tags:'
+            			for tag in str(qry.tags).split(','):
+                			x = x + '<a href="/showtagresource/'+ tag.strip() +'">'+ tag.strip() +'</a>  '
+            			x = x + '</div>'
+    		x = x + "</div></body></html>"
+    		return x
+	else:
+		return "please login first"
 
 @app.route('/resourceown')
 def resourceown():
-    query = Resource.query(Resource.createdby == 'Kun')
-    x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
-    for qry in query.fetch():
-        x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a></div>'
-    x = x + "</div></body></html>"
-    return x
+	if users.get_current_user():
+    		query = Resource.query(Resource.createdby == 'Kun')
+    		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
+    		for qry in query.fetch():
+        		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a></div>'
+    		x = x + "</div></body></html>"
+    		return x
+	else:
+    		return "please login first"
 
 @app.route('/showresource/<string:name>')
 def showresource(name):
-    return render_template('resource.html', resourcename=name)
-
+	if users.get_current_user():
+    		return render_template('resource.html', resourcename=name)
+	else:
+		return "please login first"
+		
 @app.route('/showreservation/<string:name>')
 def showreservation(name):
-	query = Resource.query(Resource.name == name, Resource.flag == 0)
-	x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container"><h2>Resource Hours</h2>'
-	for qry in query.fetch():
-		x = x + '<div>' + qry.name + '   ' + str(qry.start) + '   ' + str(qry.end) + '</div>'
-	x = x + "<h2>Reservations</h2>"
-	query = Resource.query(Resource.name == name, Resource.flag == 1)
-	for qry in query.fetch():
-		 x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   ' + str(qry.start) + '   ' + str(qry.duration) + '   ' + str(qry.reservedby) + '</div>'
-	x = x + "</div></body></html>"
-	return x
+	if users.get_current_user():
+		query = Resource.query(Resource.name == name, Resource.flag == 0)
+		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container"><h2>Resource Hours</h2>'
+		for qry in query.fetch():
+			x = x + '<div>' + qry.name + '   ' + str(qry.start) + '   ' + str(qry.end) + '</div>'
+		x = x + "<h2>Reservations</h2>"
+		query = Resource.query(Resource.name == name, Resource.flag == 1)
+		for qry in query.fetch():
+			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   ' + str(qry.start) + '   ' + str(qry.duration) + '   ' + str(qry.reservedby) + '</div>'
+		x = x + "</div></body></html>"
+		return x
+	else:
+		return "please login first"
 
 @app.route('/addreservation/<string:name>')
 def addreservation(name):
-    return render_template('addreservation.html', resourcename=name)
+	if users.get_current_user():
+    		return render_template('addreservation.html', resourcename=name)
+	else:
+		return "please login first"
 
 @app.route('/reserved', methods=['POST'])
 def reserved_form():
@@ -109,11 +130,17 @@ def reserved_form():
 
 @app.route('/editresource/<string:name>')
 def editresource(name):
-    return name
+	if users.get_current_user():
+    		return name
+	else:
+    		return "please login first"
 
 @app.route('/form')
 def form():
-    return render_template('form.html')
+	if users.get_current_user():
+    		return render_template('form.html')
+	else:
+		return "please login first"
 
 @app.route('/submitted', methods=['POST'])
 def submitted_form():
