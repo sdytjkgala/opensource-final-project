@@ -75,7 +75,7 @@ def showtagresource(name):
 @app.route('/resourceown')
 def resourceown():
 	if users.get_current_user():
-    		query = Resource.query(Resource.createdby == 'Kun')
+    		query = Resource.query(Resource.createdby == users.get_current_user().nickname())
     		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
     		for qry in query.fetch():
         		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a></div>'
@@ -120,7 +120,7 @@ def reserved_form():
 	start = request.form['start']
 	duration = request.form['duration']
 	end = datetime.strptime(start, '%H:%M') + timedelta(minutes=int(duration))
-	resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(str(end)[11:16], '%H:%M').time(), duration=int(duration), tags='', createdby='', reserved=0, reservedby='Kun', flag=1)
+	resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(str(end)[11:16], '%H:%M').time(), duration=int(duration), tags='', createdby='', reserved=0, reservedby=users.get_current_user().nickname(), flag=1)
 	resource_key = resource.put()
 	return render_template(
 	'reserved_form.html',
@@ -155,7 +155,7 @@ def submitted_form():
     if (x != 0):
         return "resource with same name already exist, please change the name"
     else:
-        resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), duration=0, tags=tags, createdby='Kun', reserved=0, reservedby='', flag=0)
+        resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), duration=0, tags=tags, createdby=users.get_current_user().nickname(), reserved=0, reservedby='', flag=0)
         resource_key = resource.put()
         return render_template(
         'submitted_form.html',
