@@ -9,6 +9,7 @@ class Resource(ndb.Model):
     name = ndb.StringProperty()
     start = ndb.TimeProperty()
     end = ndb.TimeProperty()
+    duration = ndb.IntegerProperty()
     tags = ndb.StringProperty()
     createdby = ndb.StringProperty()
     reserved = ndb.IntegerProperty()
@@ -27,9 +28,25 @@ def allresource():
 	query = Resource.query(Resource.flag == 0)
 	x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
 	for qry in query.fetch():
-		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a></div>'
+		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   Tags:'
+		for tag in str(qry.tags).split(','):
+			x = x + '<a href="/showtagresource/'+ tag.strip() +'">'+ tag.strip() +'</a>  '
+		x = x + '</div>'
 	x = x + "</div></body></html>"
 	return x
+
+@app.route('/showtagresource/<string:name>')
+def showtagresource(name):
+    query = Resource.query(Resource.flag == 0)
+    x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
+    for qry in query.fetch():
+        if (name in qry.tags):
+            x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   Tags:'
+            for tag in str(qry.tags).split(','):
+                x = x + '<a href="/showtagresource/'+ tag.strip() +'">'+ tag.strip() +'</a>  '
+            x = x + '</div>'
+    x = x + "</div></body></html>"
+    return x
 
 @app.route('/resourceown')
 def resourceown():
@@ -46,10 +63,14 @@ def showresource(name):
 
 @app.route('/showreservation/<string:name>')
 def showreservation(name):
-	query = Resource.query(Resource.name == name)
-	x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
+	query = Resource.query(Resource.name == name, Resource.flag == 0)
+	x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container"><h2>Resource Hours</h2>'
 	for qry in query.fetch():
-		x = x + '<div>' + qry.name + '___' + str(qry.start) + '___' + str(qry.end) + '___' + str(qry.createdby) + '</div>'
+		x = x + '<div>' + qry.name + '   ' + str(qry.start) + '   ' + str(qry.end) + '</div>'
+	x = x + "<h2>Reservations</h2>"
+	query = Resource.query(Resource.name == name, Resource.flag == 1)
+	for qry in query.fetch():
+		 x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   ' + str(qry.start) + '   ' + str(qry.duration) + '   ' + str(qry.reservedby) + '</div>'
 	x = x + "</div></body></html>"
 	return x
 
@@ -63,13 +84,13 @@ def reserved_form():
 	start = request.form['start']
 	duration = request.form['duration']
 	end = datetime.strptime(start, '%H:%M') + timedelta(minutes=int(duration))
-	resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(str(end)[11:16], '%H:%M').time(), tags='', createdby='', reserved=0, reservedby='Sonia', flag=1)
+	resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(str(end)[11:16], '%H:%M').time(), duration=int(duration), tags='', createdby='', reserved=0, reservedby='Kun', flag=1)
 	resource_key = resource.put()
 	return render_template(
-    'reserved_form.html',
-    name=name,
-    start=start,
-    duration=duration)
+	'reserved_form.html',
+	name=name,
+	start=start,
+	duration=duration)
 
 @app.route('/editresource/<string:name>')
 def editresource(name):
@@ -92,7 +113,7 @@ def submitted_form():
     if (x != 0):
         return "resource with same name already exist, please change the name"
     else:
-        resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), tags=tags, createdby='Sonia', reserved=0, reservedby='', flag=0)
+        resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), duration=0, tags=tags, createdby='Kun', reserved=0, reservedby='', flag=0)
         resource_key = resource.put()
         return render_template(
         'submitted_form.html',
