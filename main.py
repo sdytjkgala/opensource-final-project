@@ -37,7 +37,13 @@ def home():
 @app.route('/reservation')
 def reservation():
 	if users.get_current_user():
-		return render_template('form.html')
+		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container"><h2>Reservations made</h2>'
+		query = Resource.query(Resource.reservedby == users.get_current_user().nickname(), Resource.flag == 1) #.order(Resource.start)
+		for qry in query.fetch():
+			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   ' + str(qry.start) + '   ' + str(qry.duration) + '   ' + str(qry.reservedby) + '</div>'
+		x = x + "</div></body></html>"
+		return x
+		
 	else:
 		return "please login first"
 
@@ -119,21 +125,37 @@ def reserved_form():
 	name = request.form['name']
 	start = request.form['start']
 	duration = request.form['duration']
-	end = datetime.strptime(start, '%H:%M') + timedelta(minutes=int(duration))
-	resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(str(end)[11:16], '%H:%M').time(), duration=int(duration), tags='', createdby='', reserved=0, reservedby=users.get_current_user().nickname(), flag=1)
-	resource_key = resource.put()
-	return render_template(
-	'reserved_form.html',
-	name=name,
-	start=start,
-	duration=duration)
+	if (format_allowed(start)==1):
+		end = datetime.strptime(start, '%H:%M') + timedelta(minutes=int(duration))
+		resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(str(end)[11:16], '%H:%M').time(), duration=int(duration), tags='', createdby='', reserved=0, reservedby=users.get_current_user().nickname(), flag=1)
+		resource_key = resource.put()
+		return render_template('reserved_form.html',name=name,start=start,duration=duration)
+	else:
+		return "Time format incorrect, please fix it"	
 
 @app.route('/editresource/<string:name>')
 def editresource(name):
 	if users.get_current_user():
-    		return name
+		query = Resource.query(Resource.name == name, Resource.flag == 0)
+		for qry in query.fetch(1):
+			name = qry.name
+			start = qry.start
+			end = qry.end
+			tag = qry.tags
+			return render_template('editresource.html', name=str(name), start=str(start)[0:5], end=str(end)[0:5], tags=str(tag))
 	else:
     		return "please login first"
+
+@app.route('/edited', methods=['POST'])
+def edited_form():
+	name = request.form['name']
+	start = request.form['start']
+	end = request.form['end']
+	tags = request.form['tags']
+	if (format_allowed(end)==1 and format_allowed(start)==1):
+		return "GOOD"
+	else:
+		return "Time format incorrect, please fix it"
 
 @app.route('/form')
 def form():
@@ -144,25 +166,31 @@ def form():
 
 @app.route('/submitted', methods=['POST'])
 def submitted_form():
-    name = request.form['name']
-    start = request.form['start']
-    end = request.form['end']
-    tags = request.form['tags']
-    query = Resource.query(Resource.name == name)
-    x = 0
-    for qry in query.fetch():
-        x = x + 1
-    if (x != 0):
-        return "resource with same name already exist, please change the name"
-    else:
-        resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), duration=0, tags=tags, createdby=users.get_current_user().nickname(), reserved=0, reservedby='', flag=0)
-        resource_key = resource.put()
-        return render_template(
-        'submitted_form.html',
-        name=name,
-        start=start,
-        end=end,
-        tags=tags)
+	name = request.form['name']
+	start = request.form['start']
+	end = request.form['end']
+	tags = request.form['tags']
+	if (format_allowed(end)==1 and format_allowed(start)==1):
+		query = Resource.query(Resource.name == name)
+	    	x = 0
+    		for qry in query.fetch():
+        		x = x + 1
+    		if (x != 0):
+        		return "resource with same name already exist, please change the name"
+    		else:
+        		resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), duration=0, tags=tags, createdby=users.get_current_user().nickname(), reserved=0, reservedby='', flag=0)
+        		resource_key = resource.put()
+        		return render_template('submitted_form.html',name=name,start=start,end=end,tags=tags)
+	else:
+		return "Time format incorrect, please fix it"
+def format_allowed(a):
+	b = a.split(':')
+	if (len(b)!=2):
+		return 0
+	elif (len(b[0])!=2 or len(b[1])!=2 ):
+		return 0
+	else:
+		return 1
 
 @app.errorhandler(500)
 def server_error(e):

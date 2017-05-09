@@ -1,0 +1,26 @@
+<html>
+  <head>
+    <title>Create a resource</title>
+   <link rel="stylesheet" type="text/css" href="/static/style.css">
+  </head>
+  <body>
+    <div id="container">
+      <div class="pagetitle">
+        <h1>Edit a resource (24hr format)</h1>
+      </div>
+      <div id="main">
+        <form method="post" action="{{ url_for('edited_form') }}">
+          <label for="name">Name:</label>
+          <input type="text" name="name" value="{{name}}"><br />
+          <label for="start">Start time (hh:mm):</label>
+          <input type="text" name="start" value="{{start}}"><br />
+          <label for="end">End time (hh:mm):</label>
+          <input type="text" name="end" value="{{end}}"><br />
+          <label for="tags">Tags (seperated by comma):</label>
+          <input type="text" name="tags" value="{{tags}}"><br />
+          <input type="submit">
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
