@@ -1,6 +1,7 @@
 import logging
 from flask import Flask, render_template, request
 from google.appengine.ext import ndb
+from google.appengine.api import users
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
@@ -18,7 +19,21 @@ class Resource(ndb.Model):
 
 @app.route('/')
 def hello():
-    return render_template('index.html')
+	user = users.get_current_user()
+	if user:
+		nickname = user.nickname()
+		logout_url = users.create_logout_url('/')
+		greeting = 'Welcome, {}! (<a href="{}">sign out</a>)<div><a href="/home">Home Page</a></div>'.format(nickname, logout_url)
+		return ('<html><body>{}</body></html>'.format(greeting))
+	else:
+		login_url = users.create_login_url('/')
+		greeting = '<a href="{}">Sign in</a>'.format(login_url)
+		return ('<html><body>{}</body></html>'.format(greeting))
+
+@app.route('/home')
+def home():
+	return render_template('index.html')
+
 @app.route('/reservation')
 def reservation():
     return render_template('form.html')
