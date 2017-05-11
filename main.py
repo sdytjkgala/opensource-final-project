@@ -182,11 +182,12 @@ def reserved_form():
 	if (format_allowed(start)==1):
 		if (can_reserve(name, start, duration) == 1):
 			end = datetime.strptime(start, '%H:%M') + timedelta(minutes=int(duration))
-			resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(str(end)[11:16], '%H:%M').time(), duration=int(duration), tags='', createdby='', reserved=0, reservedby=users.get_current_user().nickname(), flag=1, timestamp=datetime.strptime(str(datetime.now())[11:16], '%H:%M').time())
+			eastern = timezone('US/Eastern')
+			resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(str(end)[11:16], '%H:%M').time(), duration=int(duration), tags='', createdby='', reserved=0, reservedby=users.get_current_user().nickname(), flag=1, timestamp=datetime.strptime(str(datetime.now(eastern))[11:16], '%H:%M').time())
 			resource_key = resource.put()
 			query = Resource.query(Resource.name == name, Resource.flag == 0)
 			for qry in query.fetch(1):
-				qry.timestamp = datetime.strptime(str(datetime.now())[11:16], '%H:%M').time()
+				qry.timestamp = datetime.strptime(str(datetime.now(eastern))[11:16], '%H:%M').time()
 				qry.put()
 			return render_template('reserved_form.html',name=name,start=start,duration=duration)
 		else:
@@ -224,9 +225,6 @@ def form():
     		return render_template('form.html')
 	else:
 		return "please login first"
-		#eastern = timezone('US/Eastern')
-		#current_time = str(datetime.now(eastern))[11:16]
-		#return current_time
 
 @app.route('/submitted', methods=['POST'])
 def submitted_form():
@@ -235,16 +233,20 @@ def submitted_form():
 	end = request.form['end']
 	tags = request.form['tags']
 	if (format_allowed(end)==1 and format_allowed(start)==1):
-		query = Resource.query(Resource.name == name)
-	    	x = 0
-    		for qry in query.fetch():
-        		x = x + 1
-    		if (x != 0):
-        		return "resource with same name already exist, please change the name"
-    		else:
-        		resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), duration=0, tags=tags, createdby=users.get_current_user().nickname(), reserved=0, reservedby='', flag=0, timestamp=datetime.strptime(str(datetime.now())[11:16], '%H:%M').time())
-        		resource_key = resource.put()
-        		return render_template('submitted_form.html',name=name,start=start,end=end,tags=tags)
+		if ((int(end.split(':')[0]) < int(start.split(':')[0])) or (int(end.split(':')[0]) == int(start.split(':')[0]) and int(end.split(':')[1]) <= int(start.split(':')[1]))):
+			return "End Time has to be after Start time, please fix it"
+		else:
+			query = Resource.query(Resource.name == name)
+	    		x = 0
+    			for qry in query.fetch():
+        			x = x + 1
+    			if (x != 0):
+        			return "resource with same name already exist, please change the name"
+    			else:
+    				eastern = timezone('US/Eastern')
+        			resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), duration=0, tags=tags, createdby=users.get_current_user().nickname(), reserved=0, reservedby='', flag=0, timestamp=datetime.strptime(str(datetime.now(eastern))[11:16], '%H:%M').time())
+        			resource_key = resource.put()
+        			return render_template('submitted_form.html',name=name,start=start,end=end,tags=tags)
 	else:
 		return "Time format incorrect, please fix it"
 def format_allowed(a):
