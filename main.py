@@ -16,6 +16,7 @@ class Resource(ndb.Model):
     reserved = ndb.IntegerProperty()
     reservedby = ndb.StringProperty()
     flag = ndb.IntegerProperty() # 0 = total, 1 = sub
+    timestamp = ndb.TimeProperty()
 
 @app.route('/')
 def hello():
@@ -34,13 +35,33 @@ def hello():
 def home():
 	return render_template('index.html')
 
+@app.route('/showowned/<string:name>')
+def showowned(name):
+	if users.get_current_user():
+		return render_template('showowned.html', name=name)
+	else:
+		return "please login first"
+
 @app.route('/reservation')
 def reservation():
 	if users.get_current_user():
 		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container"><h2>Reservations made</h2>'
-		query = Resource.query(Resource.reservedby == users.get_current_user().nickname(), Resource.flag == 1) #.order(Resource.start)
+		query = Resource.query(Resource.reservedby == users.get_current_user().nickname(), Resource.flag == 1).order(Resource.start)
 		for qry in query.fetch():
-			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   ' + str(qry.start) + '   ' + str(qry.duration) + '   ' + str(qry.reservedby) + '</div>'
+			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   , start-time:' + str(qry.start)[0:5] + '  , duration(minutes): ' + str(qry.duration) + '   , reserved-by: <a href="/showowned/' + str(qry.reservedby) + '">' + str(qry.reservedby) + '</a></div>'
+		x = x + "</div></body></html>"
+		return x
+		
+	else:
+		return "please login first"
+
+@app.route('/reservationbyuser/<string:name>')
+def reservationbyuser(name):
+	if users.get_current_user():
+		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container"><h2>Reservations made</h2>'
+		query = Resource.query(Resource.reservedby == name, Resource.flag == 1).order(Resource.start)
+		for qry in query.fetch():
+			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   , start-time:' + str(qry.start)[0:5] + '  , duration(minutes): ' + str(qry.duration) + '   , reserved-by: <a href="/showowned/' + str(qry.reservedby) + '">' + str(qry.reservedby) + '</a></div>'
 		x = x + "</div></body></html>"
 		return x
 		
@@ -50,7 +71,7 @@ def reservation():
 @app.route('/allresource')
 def allresource():
 	if users.get_current_user():
-		query = Resource.query(Resource.flag == 0)
+		query = Resource.query(Resource.flag == 0).order(-Resource.timestamp)
 		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
 		for qry in query.fetch():
 			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   Tags:'
@@ -90,6 +111,18 @@ def resourceown():
 	else:
     		return "please login first"
 
+@app.route('/resourceownbyuser/<string:name>')
+def resourceownbyuser(name):
+	if users.get_current_user():
+    		query = Resource.query(Resource.createdby == name)
+    		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
+    		for qry in query.fetch():
+        		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a></div>'
+    		x = x + "</div></body></html>"
+    		return x
+	else:
+    		return "please login first"
+
 @app.route('/showresource/<string:name>')
 def showresource(name):
 	if users.get_current_user():
@@ -107,7 +140,7 @@ def showreservation(name):
 		x = x + "<h2>Reservations</h2>"
 		query = Resource.query(Resource.name == name, Resource.flag == 1)
 		for qry in query.fetch():
-			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   ' + str(qry.start) + '   ' + str(qry.duration) + '   ' + str(qry.reservedby) + '</div>'
+			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>  , start-time: ' + str(qry.start) + '  , duration: ' + str(qry.duration) + '  , reserved-by: <a href="/showowned/' + str(qry.reservedby) + '">' + str(qry.reservedby) + '</a></div>'
 		x = x + "</div></body></html>"
 		return x
 	else:
@@ -127,7 +160,7 @@ def reserved_form():
 	duration = request.form['duration']
 	if (format_allowed(start)==1):
 		end = datetime.strptime(start, '%H:%M') + timedelta(minutes=int(duration))
-		resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(str(end)[11:16], '%H:%M').time(), duration=int(duration), tags='', createdby='', reserved=0, reservedby=users.get_current_user().nickname(), flag=1)
+		resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(str(end)[11:16], '%H:%M').time(), duration=int(duration), tags='', createdby='', reserved=0, reservedby=users.get_current_user().nickname(), flag=1, timestamp=datetime.strptime(str(datetime.now())[11:16], '%H:%M').time())
 		resource_key = resource.put()
 		return render_template('reserved_form.html',name=name,start=start,duration=duration)
 	else:
@@ -178,7 +211,7 @@ def submitted_form():
     		if (x != 0):
         		return "resource with same name already exist, please change the name"
     		else:
-        		resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), duration=0, tags=tags, createdby=users.get_current_user().nickname(), reserved=0, reservedby='', flag=0)
+        		resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), duration=0, tags=tags, createdby=users.get_current_user().nickname(), reserved=0, reservedby='', flag=0, timestamp=datetime.strptime(str(datetime.now())[11:16], '%H:%M').time())
         		resource_key = resource.put()
         		return render_template('submitted_form.html',name=name,start=start,end=end,tags=tags)
 	else:
