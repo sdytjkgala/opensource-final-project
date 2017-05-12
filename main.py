@@ -205,7 +205,7 @@ def editresource(name):
 			end = qry.end
 			tag = qry.tags
 			if (users.get_current_user().nickname() == qry.createdby):
-				return render_template('editresource.html', name=str(name), start=str(start), end=str(end), tags=str(tag))
+				return render_template('editresource.html', name=str(name), start=str(start), end=str(end), tags=str(tag), origin=str(name))
 			else:
 				return "Permission denied. You must be the owner of the Resource" 
 	else:
@@ -217,10 +217,23 @@ def edited_form():
 	start = request.form['start']
 	end = request.form['end']
 	tags = request.form['tags']
-	if (format_allowed(end)==1 and format_allowed(start)==1):
-		return "GOOD"
-	else:
+	origin = request.form['origin']
+	if (name==""):
+		return "You must put a resource name, please fix it"
+	elif (name[0]==" "):
+		return "Name cannot start with a space, please fix it"
+	elif (name[len(name)-1] == " "):
+		return "Name cannot end with a space, please fix it"
+	elif (format_allowed(end)==0 or format_allowed(start)==0):
 		return "Time format incorrect, please fix it"
+	elif ((int(end.split(':')[0]) < int(start.split(':')[0])) or (int(end.split(':')[0]) == int(start.split(':')[0]) and int(end.split(':')[1]) <= int(start.split(':')[1]))):
+		return "End Time has to be after Start time, please fix it"
+	else:
+		query = Resource.query(Resource.name == origin, Resource.flag == 1)
+		for qry in query.fetch():
+			if (outside_start(str(qry.start), start) ==0 or outside_end(str(qry.end), end)==0):
+				return "There are existing reservations which falls out side your new time, please fix it"
+		return origin
 
 @app.route('/form')
 def form():
@@ -296,6 +309,21 @@ def inside(start, end, t):
 	else:
 		return 0
 
+def outside_start(start, t):
+	start_t = time(int(start.split(':')[0]), int(start.split(':')[1]))
+	t_t = time(int(t.split(':')[0]), int(t.split(':')[1]))
+	if t_t <= start_t:
+		return 1
+	else:
+		return 0
+
+def outside_end(end, t):
+	end_t = time(int(end.split(':')[0]), int(end.split(':')[1]))
+	t_t = time(int(t.split(':')[0]), int(t.split(':')[1]))
+	if t_t >= end_t:
+		return 1
+	else:
+		return 0
 def reservation_pass(end):
 	eastern = timezone('US/Eastern')
 	current_time = str(datetime.now(eastern))[11:16]
