@@ -153,7 +153,7 @@ def showreservation(name):
 		query = Resource.query(Resource.name == name, Resource.flag == 0)
 		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container"><h2>Resource Hours</h2>'
 		for qry in query.fetch():
-			x = x + '<div>' + qry.name + '   ' + str(qry.start) + '   ' + str(qry.end) + '</div>'
+			x = x + '<div><a href="/showresource/' + qry.name +'">'+ qry.name +'</a>   ' + str(qry.start) + '   ' + str(qry.end) + '</div>'
 		x = x + "<h2>Reservations</h2>"
 		query = Resource.query(Resource.name == name, Resource.flag == 1)
 		for qry in query.fetch():
