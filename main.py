@@ -180,8 +180,8 @@ def reserved_form():
 	start = request.form['start']
 	duration = request.form['duration']
 	if (format_allowed(start)==1):
-		if (can_reserve(name, start, duration) == 1):
-			end = datetime.strptime(start, '%H:%M') + timedelta(minutes=int(duration))
+		end = datetime.strptime(start, '%H:%M') + timedelta(minutes=int(duration))
+		if (can_reserve(name, start, duration,str(end)[11:16]) == 1):
 			eastern = timezone('US/Eastern')
 			resource = Resource(name=name, start=start, end=str(end)[11:16], duration=int(duration), tags='', createdby='', reserved=0, reservedby=users.get_current_user().nickname(), flag=1, timestamp=str(datetime.now(eastern))[11:16])
 			resource_key = resource.put()
@@ -261,14 +261,21 @@ def format_allowed(a):
 	else:
 		return 1
 
-def can_reserve(name, start, duration):
-	query = Resource.query(Resource.name == name, Resource.flag == 0)
+def can_reserve(name, start, duration, end):
 	start_time = ""
 	end_time = ""
+	query = Resource.query(Resource.name == name, Resource.flag == 0)
 	for qry in query.fetch(1):
 		start_time = str(qry.start)
 		end_time = str(qry.end)
-	if (int(start.split(':')[0]) < int(start_time.split(':')[0]) or int(start.split(':')[0]) > int(end_time.split(':')[0])):
+	#query = Resource.query(Resource.name == name, Resource.flag == 1)
+	#for qry in query.fetch():
+		
+	if (int(start.split(':')[0]) < int(start_time.split(':')[0]) or int(start.split(':')[0]) > int(end_time.split(':')[0]) or ( int(start.split(':')[0]) == int(start_time.split(':')[0]) and int(start.split(':')[1]) < int(start_time.split(':')[1]) ) or (int(start.split(':')[0]) == int(end_time.split(':')[0]) and int(start.split(':')[1]) > int(end_time.split(':')[1]))):
+		return 0
+	elif (int(duration)>=1439):
+		return 0
+	elif (int(start.split(':')[0]) > int(end.split(':')[0]) or (int(start.split(':')[0]) == int(end.split(':')[0]) and int(start.split(':')[1]) > int(end.split(':')[1]))):
 		return 0
 	else:
 		return 1
