@@ -2,7 +2,7 @@ import logging
 from flask import Flask, render_template, request
 from google.appengine.ext import ndb
 from google.appengine.api import users
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import pytz
 from pytz import timezone
 
@@ -267,18 +267,28 @@ def can_reserve(name, start, duration, end):
 	query = Resource.query(Resource.name == name, Resource.flag == 0)
 	for qry in query.fetch(1):
 		start_time = str(qry.start)
-		end_time = str(qry.end)
-	#query = Resource.query(Resource.name == name, Resource.flag == 1)
-	#for qry in query.fetch():
-		
-	if (int(start.split(':')[0]) < int(start_time.split(':')[0]) or int(start.split(':')[0]) > int(end_time.split(':')[0]) or ( int(start.split(':')[0]) == int(start_time.split(':')[0]) and int(start.split(':')[1]) < int(start_time.split(':')[1]) ) or (int(start.split(':')[0]) == int(end_time.split(':')[0]) and int(start.split(':')[1]) > int(end_time.split(':')[1]))):
+		end_time = str(qry.end)	
+	if (int(start.split(':')[0]) < int(start_time.split(':')[0]) or int(start.split(':')[0]) > int(end_time.split(':')[0]) or ( int(start.split(':')[0]) == int(start_time.split(':')[0]) and int(start.split(':')[1]) < int(start_time.split(':')[1]) ) or (int(end.split(':')[0]) == int(end_time.split(':')[0]) and int(end.split(':')[1]) > int(end_time.split(':')[1]))):
 		return 0
 	elif (int(duration)>=1439):
 		return 0
 	elif (int(start.split(':')[0]) > int(end.split(':')[0]) or (int(start.split(':')[0]) == int(end.split(':')[0]) and int(start.split(':')[1]) > int(end.split(':')[1]))):
 		return 0
 	else:
+		query = Resource.query(Resource.name == name, Resource.flag == 1)
+		for qry in query.fetch():
+			if (inside(qry.start, qry.end, start) == 1 or inside(qry.start, qry.end, end) == 1):
+				return 0
 		return 1
+
+def inside(start, end, t):
+	start_t = time(int(start.split(':')[0]), int(start.split(':')[1]))
+	end_t = time(int(end.split(':')[0]), int(end.split(':')[1]))
+	t_t = time(int(t.split(':')[0]), int(t.split(':')[1]))
+	if start_t <= t_t <= end_t:
+		return 1
+	else:
+		return 0
 
 def reservation_pass(end):
 	eastern = timezone('US/Eastern')
@@ -293,7 +303,7 @@ def reservation_pass(end):
 			return 0
 	else:
 		return 0
-		
+	
 @app.errorhandler(500)
 def server_error(e):
     # Log the error and stacktrace.
