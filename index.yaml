@@ -12,12 +12,6 @@ indexes:
 
 - kind: Resource
   properties:
-  - name: flag
-  - name: reservedby
   - name: start
-
-- kind: Resource
-  properties:
-  - name: flag
   - name: timestamp
     direction: desc

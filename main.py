@@ -10,15 +10,15 @@ app = Flask(__name__)
 
 class Resource(ndb.Model):
     name = ndb.StringProperty()
-    start = ndb.TimeProperty()
-    end = ndb.TimeProperty()
+    start = ndb.StringProperty()
+    end = ndb.StringProperty()
     duration = ndb.IntegerProperty()
     tags = ndb.StringProperty()
     createdby = ndb.StringProperty()
     reserved = ndb.IntegerProperty()
     reservedby = ndb.StringProperty()
     flag = ndb.IntegerProperty() # 0 = total, 1 = sub
-    timestamp = ndb.TimeProperty()
+    timestamp = ndb.StringProperty()
 
 @app.route('/')
 def hello():
@@ -48,10 +48,10 @@ def showowned(name):
 def reservation():
 	if users.get_current_user():
 		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container"><h2>Reservations made</h2>'
-		query = Resource.query(Resource.reservedby == users.get_current_user().nickname(), Resource.flag == 1) #.order(Resource.start)
+		query = Resource.query(Resource.reservedby == users.get_current_user().nickname(), Resource.flag == 1).order(Resource.start)
 		for qry in query.fetch():
 			if (reservation_pass(str(qry.end)) == 0):
-				x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   , start-time:' + str(qry.start)[0:5] + '  , duration(minutes): ' + str(qry.duration) + '   , reserved-by: <a href="/showowned/' + str(qry.reservedby) + '">' + str(qry.reservedby) + '</a> , <a href="/deletereservation/' + str(qry.key.id()) + '">delete reservation </a></div>'
+				x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   , start-time:' + str(qry.start) + '  , duration(minutes): ' + str(qry.duration) + '   , reserved-by: <a href="/showowned/' + str(qry.reservedby) + '">' + str(qry.reservedby) + '</a> , <a href="/deletereservation/' + str(qry.key.id()) + '">delete reservation </a></div>'
 		x = x + "</div></body></html>"
 		return x		
 	else:
@@ -72,13 +72,13 @@ def deletereservation(id):
 def reservationbyuser(name):
 	if users.get_current_user():
 		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container"><h2>Reservations made</h2>'
-		query = Resource.query(Resource.reservedby == name, Resource.flag == 1) #.order(Resource.start)
+		query = Resource.query(Resource.reservedby == name, Resource.flag == 1).order(Resource.start)
 		for qry in query.fetch():
 			if (reservation_pass(str(qry.end)) == 0):
 				if (qry.reservedby == users.get_current_user().nickname()):
-					x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   , start-time:' + str(qry.start)[0:5] + '  , duration(minutes): ' + str(qry.duration) + '   , reserved-by: <a href="/showowned/' + str(qry.reservedby) + '">' + str(qry.reservedby) + '</a> , <a href="/deletereservation/' + str(qry.key.id()) + '">delete reservation </a></div>'
+					x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   , start-time:' + str(qry.start) + '  , duration(minutes): ' + str(qry.duration) + '   , reserved-by: <a href="/showowned/' + str(qry.reservedby) + '">' + str(qry.reservedby) + '</a> , <a href="/deletereservation/' + str(qry.key.id()) + '">delete reservation </a></div>'
 				else:	
-					x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   , start-time:' + str(qry.start)[0:5] + '  , duration(minutes): ' + str(qry.duration) + '   , reserved-by: <a href="/showowned/' + str(qry.reservedby) + '">' + str(qry.reservedby) + '</a></div>'
+					x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   , start-time:' + str(qry.start) + '  , duration(minutes): ' + str(qry.duration) + '   , reserved-by: <a href="/showowned/' + str(qry.reservedby) + '">' + str(qry.reservedby) + '</a></div>'
 		x = x + "</div></body></html>"
 		return x
 		
@@ -88,7 +88,7 @@ def reservationbyuser(name):
 @app.route('/allresource')
 def allresource():
 	if users.get_current_user():
-		query = Resource.query(Resource.flag == 0) #.order(-Resource.timestamp)
+		query = Resource.query(Resource.flag == 0).order(-Resource.timestamp)
 		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
 		for qry in query.fetch():
 			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   Tags:'
@@ -183,11 +183,11 @@ def reserved_form():
 		if (can_reserve(name, start, duration) == 1):
 			end = datetime.strptime(start, '%H:%M') + timedelta(minutes=int(duration))
 			eastern = timezone('US/Eastern')
-			resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(str(end)[11:16], '%H:%M').time(), duration=int(duration), tags='', createdby='', reserved=0, reservedby=users.get_current_user().nickname(), flag=1, timestamp=datetime.strptime(str(datetime.now(eastern))[11:16], '%H:%M').time())
+			resource = Resource(name=name, start=start, end=str(end)[11:16], duration=int(duration), tags='', createdby='', reserved=0, reservedby=users.get_current_user().nickname(), flag=1, timestamp=str(datetime.now(eastern))[11:16])
 			resource_key = resource.put()
 			query = Resource.query(Resource.name == name, Resource.flag == 0)
 			for qry in query.fetch(1):
-				qry.timestamp = datetime.strptime(str(datetime.now(eastern))[11:16], '%H:%M').time()
+				qry.timestamp = str(datetime.now(eastern))[11:16]
 				qry.put()
 			return render_template('reserved_form.html',name=name,start=start,duration=duration)
 		else:
@@ -204,7 +204,7 @@ def editresource(name):
 			start = qry.start
 			end = qry.end
 			tag = qry.tags
-			return render_template('editresource.html', name=str(name), start=str(start)[0:5], end=str(end)[0:5], tags=str(tag))
+			return render_template('editresource.html', name=str(name), start=str(start), end=str(end), tags=str(tag))
 	else:
     		return "please login first"
 
@@ -244,7 +244,7 @@ def submitted_form():
         			return "resource with same name already exist, please change the name"
     			else:
     				eastern = timezone('US/Eastern')
-        			resource = Resource(name=name, start=datetime.strptime(start, '%H:%M').time(), end=datetime.strptime(end, '%H:%M').time(), duration=0, tags=tags, createdby=users.get_current_user().nickname(), reserved=0, reservedby='', flag=0, timestamp=datetime.strptime(str(datetime.now(eastern))[11:16], '%H:%M').time())
+        			resource = Resource(name=name, start=start, end=end, duration=0, tags=tags, createdby=users.get_current_user().nickname(), reserved=0, reservedby='', flag=0, timestamp=str(datetime.now(eastern))[11:16])
         			resource_key = resource.put()
         			return render_template('submitted_form.html',name=name,start=start,end=end,tags=tags)
 	else:
@@ -273,7 +273,7 @@ def can_reserve(name, start, duration):
 def reservation_pass(end):
 	eastern = timezone('US/Eastern')
 	current_time = str(datetime.now(eastern))[11:16]
-	end_time = end[0:5]
+	end_time = end
 	if (int(current_time.split(':')[0]) > int(end_time.split(':')[0])):
 		return 1
 	elif (int(current_time.split(':')[0]) == int(end_time.split(':')[0])):
