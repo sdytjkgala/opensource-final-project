@@ -235,7 +235,13 @@ def submitted_form():
 	start = request.form['start']
 	end = request.form['end']
 	tags = request.form['tags']
-	if (format_allowed(end)==1 and format_allowed(start)==1):
+	if (name==""):
+		return "You must put a resource name, please fix it"
+	elif (name[0]==" "):
+		return "Name cannot start with a space, please fix it"
+	elif (name[len(name)-1] == " "):
+		return "Name cannot end with a space, please fix it"
+	elif (format_allowed(end)==1 and format_allowed(start)==1):
 		if ((int(end.split(':')[0]) < int(start.split(':')[0])) or (int(end.split(':')[0]) == int(start.split(':')[0]) and int(end.split(':')[1]) <= int(start.split(':')[1]))):
 			return "End Time has to be after Start time, please fix it"
 		else:
