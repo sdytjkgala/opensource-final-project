@@ -204,7 +204,10 @@ def editresource(name):
 			start = qry.start
 			end = qry.end
 			tag = qry.tags
-			return render_template('editresource.html', name=str(name), start=str(start), end=str(end), tags=str(tag))
+			if (users.get_current_user().nickname() == qry.createdby):
+				return render_template('editresource.html', name=str(name), start=str(start), end=str(end), tags=str(tag))
+			else:
+				return "Permission denied. You must be the owner of the Resource" 
 	else:
     		return "please login first"
 
