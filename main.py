@@ -94,7 +94,8 @@ def allresource():
 			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   Tags:'
 			for tag in str(qry.tags).split(','):
 				x = x + '<a href="/showtagresource/'+ tag.strip() +'">'+ tag.strip() +'</a>  '
-			x = x + '<a href="/rss/'+ qry.name +'">RSS</a></div>'
+			x = x + ', reserved: ' + str(reservedCount(qry.name)) + ' times'
+			x = x + ',  <a href="/rss/'+ qry.name +'">RSS</a></div>'
 		x = x + "</div></body></html>"
 		return x
 	else:
@@ -122,7 +123,9 @@ def resourceown():
     		query = Resource.query(Resource.createdby == users.get_current_user().nickname())
     		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
     		for qry in query.fetch():
-        		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a></div>'
+        		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>'
+        		x = x + ', reserved: ' + str(reservedCount(qry.name)) + ' times'
+        		x = x + ',  <a href="/rss/'+ qry.name +'">RSS</a></div>'
     		x = x + "</div></body></html>"
     		return x
 	else:
@@ -134,7 +137,9 @@ def resourceownbyuser(name):
     		query = Resource.query(Resource.createdby == name)
     		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
     		for qry in query.fetch():
-        		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a></div>'
+        		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>'
+        		x = x + ', reserved: ' + str(reservedCount(qry.name)) + ' times'
+        		x = x + ',  <a href="/rss/'+ qry.name +'">RSS</a></div>'
     		x = x + "</div></body></html>"
     		return x
 	else:
@@ -197,7 +202,6 @@ def reserved_form():
 
 @app.route('/rss/<string:name>')
 def rss(name):
-	#'<html><head><title>RSS Page</title><link rel="stylesheet" type="text/css" href="/static/style.css"></head><div id="container"></div></body></html>'
 	xmloutput = '&lt;?xml version="1.0" encoding="UTF-8" ?&gt;<br>&lt;rss version="2.0"&gt;<br>&lt;channel&gt;<br>'
 	xmloutput = xmloutput + '&nbsp;&lt;title&gt;Reservations&lt;/title&gt;<br>&nbsp;&lt;description&gt;This contains all reservations&lt;/description&gt;<br><br>'
 	query = Resource.query(Resource.name == name, Resource.flag == 1)
@@ -205,17 +209,6 @@ def rss(name):
 		xmloutput = xmloutput + '&nbsp;&lt;item&gt;<br>&nbsp;&nbsp;&lt;title&gt;'+ name +'&lt;/title&gt;<br>&nbsp;&nbsp;&lt;startTime&gt;' + str(qry.start) + '&lt;/startTime&gt;<br>&nbsp;&nbsp;&lt;duration&gt;' + str(qry.duration) + '&lt;/duration&gt;<br>&nbsp;&nbsp;&lt;reservedby&gt;' + str(qry.reservedby) + '&lt;/reservedby&gt;<br>&nbsp;&lt;item&gt;<br><br>'
 	xmloutput = xmloutput + '&lt;channel&gt;<br>&lt;/rss&gt;'
 	return xmloutput
-	#xmloutput = '<html><head><title>RSS Page</title><link rel="stylesheet" type="text/css" href="/static/style.css"></head><div id="container">'
-	#xmloutput = xmloutput + '<div>&lt;Reservation&gt;<br>&lt;/Reservation&gt;</div></body></html>'
-	#return xmloutput
-
-	#xmloutput = '<html><head><textarea rows="20" cols="40" style="border:none;"><?xml version="1.0" encoding="UTF-8" ?><br><rss version="2.0"><channel>'
-	#xmloutput = xmloutput + ' <title>Reservations</title><description>This contains all reservations</description>'
-	#query = Resource.query(Resource.name == name, Resource.flag == 1)
-	#for qry in query.fetch():
-	#	xmloutput = xmloutput + ' <item><title>'+ name +'</title><startTime>' + str(qry.start) + '</startTime><duration>' + str(qry.duration) + '</duration><reservedby>' + str(qry.reservedby) + '</reservedby><item>'
-	#xmloutput = xmloutput + '<channel></rss></textarea></body></html>'
-	#return xmloutput
 
 @app.route('/editresource/<string:name>')
 def editresource(name):
@@ -305,6 +298,12 @@ def submitted_form():
 	else:
 		return "Time format incorrect, please fix it"
 
+def reservedCount(name):
+	count = 0
+	query = Resource.query(Resource.name == name, Resource.flag == 1)
+	for qry in query.fetch():
+		count = count + 1
+	return count
 
 def format_allowed(a):
 	b = a.split(':')
