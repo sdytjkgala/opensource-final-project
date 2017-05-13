@@ -94,8 +94,8 @@ def allresource():
 			x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>   Tags:'
 			for tag in str(qry.tags).split(','):
 				x = x + '<a href="/showtagresource/'+ tag.strip() +'">'+ tag.strip() +'</a>  '
-			x = x + ', reserved: ' + str(reservedCount(qry.name)) + ' times'
-			x = x + ',  <a href="/rss/'+ qry.name +'">RSS</a></div>'
+			x = x + ', reserved: ' + str(reservedCount(qry.name)) + ' times</div>'
+			#x = x + ',  <a href="/rss/'+ qry.name +'">RSS</a></div>'
 		x = x + "</div></body></html>"
 		return x
 	else:
@@ -124,8 +124,8 @@ def resourceown():
     		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
     		for qry in query.fetch():
         		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>'
-        		x = x + ', reserved: ' + str(reservedCount(qry.name)) + ' times'
-        		x = x + ',  <a href="/rss/'+ qry.name +'">RSS</a></div>'
+        		x = x + ', reserved: ' + str(reservedCount(qry.name)) + ' times</div>'
+        		#x = x + ',  <a href="/rss/'+ qry.name +'">RSS</a></div>'
     		x = x + "</div></body></html>"
     		return x
 	else:
@@ -138,8 +138,8 @@ def resourceownbyuser(name):
     		x = '<html><head><link rel="stylesheet" type="text/css" href="/static/style.css"></head><body><div id="container">'
     		for qry in query.fetch():
         		x = x + '<div><a href="/showresource/'+ qry.name +'">'+ qry.name +'</a>'
-        		x = x + ', reserved: ' + str(reservedCount(qry.name)) + ' times'
-        		x = x + ',  <a href="/rss/'+ qry.name +'">RSS</a></div>'
+        		x = x + ', reserved: ' + str(reservedCount(qry.name)) + ' times</div>'
+        		#x = x + ',  <a href="/rss/'+ qry.name +'">RSS</a></div>'
     		x = x + "</div></body></html>"
     		return x
 	else:
