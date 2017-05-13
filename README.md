@@ -4,6 +4,10 @@ Google App Engine URL: https://opensource-final-project.appspot.com/
 
 Github repo: https://github.com/sdytjkgala/opensource-final-project
 
+master branch - all features
+
+no-RSS branch - turn off RSS feature
+
 @app.route('/') - login page
 
 @app.route('/home') - landing page
