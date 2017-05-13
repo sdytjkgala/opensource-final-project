@@ -233,7 +233,18 @@ def edited_form():
 		for qry in query.fetch():
 			if (outside_start(str(qry.start), start) ==0 or outside_end(str(qry.end), end)==0):
 				return "There are existing reservations which falls out side your new time, please fix it"
-		return origin
+		query = Resource.query(Resource.name == origin, Resource.flag == 0)
+		for qry in query.fetch():
+			qry.name = name
+			qry.start = start
+			qry.end = end
+			qry.tags = tags
+			qry.put()
+		query = Resource.query(Resource.name == origin, Resource.flag == 1)
+		for qry in query.fetch():
+			qry.name = name
+			qry.put()
+		return "Information updated successfully"
 
 @app.route('/form')
 def form():
